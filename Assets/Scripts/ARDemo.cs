@@ -27,7 +27,7 @@ public class ARDemo : MonoBehaviour
         _trackedImageManager.trackedImagesChanged -= OnImagesChanged;
     }
 	
-    void AddImage(Texture2D newImage)
+    public void AddImage(Texture2D newImage)
     {
         if (!_trackedImageManager.descriptor.supportsMutableLibrary)
         {
