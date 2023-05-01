@@ -16,15 +16,31 @@ public class UIController : MonoBehaviour
     private RenderTexture _screenshotTex;
     private RenderTexture _camTex;
 
+    private bool _showDebugText = false;
+    private float _debugTextEndTime;
+
     private void Awake()
     {
         _demoScript = GetComponent<ARDemo>();    
         _screenshotTex = new RenderTexture(Screen.width, Screen.height, 24);
     }
 
+    private void Update()
+    {
+        if (_showDebugText)
+        {
+            if (Time.time >= _debugTextEndTime)
+            {
+                _debugTextEndTime = 0f;
+                _showDebugText = false;
+                _debugText.text = "";
+            }
+        }
+    }
+
     public void TakeScreenshot()
     {
-        _debugText.text = "Taking screenshot";
+        ShowDebugText("Taking screenshot", 1f);
 
         _camTex = _camera.activeTexture;
         
@@ -37,5 +53,12 @@ public class UIController : MonoBehaviour
         _demoScript.AddImage(resultTex);
 
         _camera.targetTexture = _camTex;
+    }
+
+    public void ShowDebugText(string text, float timeout = 3f)
+    {
+        _showDebugText = true;
+        _debugText.text = text;
+        _debugTextEndTime = Time.time + timeout;
     }
 }
