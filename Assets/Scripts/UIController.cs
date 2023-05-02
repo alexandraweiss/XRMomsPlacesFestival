@@ -55,6 +55,11 @@ public class UIController : MonoBehaviour
         _camera.targetTexture = _camTex;
     }
 
+    public void ResetScene()
+    {
+        _demoScript.ResetScene();
+    }
+
     public void ShowDebugText(string text, float timeout = 3f)
     {
         _showDebugText = true;

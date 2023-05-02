@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -57,12 +58,30 @@ public class ARDemo : MonoBehaviour
         }
     }
 
+    public void ResetScene()
+    {
+        _images.Clear();
+        foreach (GameObject obj in _imageToObjectMapping.Values)
+        {
+            Destroy(obj);
+        }
+        _imageToObjectMapping.Clear();
+
+    }
+
     void OnImagesChanged(ARTrackedImagesChangedEventArgs args)
 	{
         foreach (ARTrackedImage addedImage in args.added)
 		{
             _images.Add(addedImage);
 		}
+        foreach (ARTrackedImage updatedImage in args.updated)
+        {
+            if (!_images.Contains(updatedImage))
+            {
+                _images.Add(updatedImage);
+            }
+        }
     }
 
 #if PLATFORM_ANDROID
@@ -74,10 +93,12 @@ public class ARDemo : MonoBehaviour
             currentActivity.Call<bool>("moveTaskToBack", true);
         }
 
-        foreach(ARTrackedImage image in _images)
+        foreach (ARTrackedImage image in _images)
         {
-            if(!_imageToObjectMapping.ContainsKey(image))
+            //_uiController.ShowDebugText($"trackable {image.trackingState} contains {_imageToObjectMapping.ContainsKey(image)}"  , 1f);
+            if (!_imageToObjectMapping.ContainsKey(image))
             {
+                _uiController.ShowDebugText("spawn  ...", 1f);
                 Vector3 normal = Vector3.up;
                 Ray ray = new Ray(_arCamera.transform.position, image.transform.position - _arCamera.transform.position);
                 if (_raycastManager.Raycast(ray, _hits, TrackableType.Image))
@@ -96,6 +117,24 @@ public class ARDemo : MonoBehaviour
                 toSpawn.transform.localPosition = Vector3.zero;
                 toSpawn.transform.rotation = Quaternion.Euler(normal);
                 _imageToObjectMapping[image] = toSpawn;
+            }
+            else if (image.trackingState == TrackingState.Limited)
+            {
+                _uiController.ShowDebugText("deactivate  ...", 0.5f);
+                GameObject lostObject = _imageToObjectMapping[image];
+                if (lostObject != null && lostObject.activeSelf)
+                {
+                    lostObject.SetActive(false);
+                }
+            }
+            else
+            {
+                _uiController.ShowDebugText("activate  ...", 0.5f);
+                GameObject lostObject = _imageToObjectMapping[image];
+                if (lostObject != null && !lostObject.activeSelf)
+                {
+                    lostObject.SetActive(true);
+                }
             }
         }
     }
